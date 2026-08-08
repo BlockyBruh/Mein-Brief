@@ -1,0 +1,1219 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ein besonderer Gruß</title>
+    <style>
+        :root {
+            --env-color: #a78bfa;
+            --env-color-dark: #7c3aed;
+            --paper-color: #f7f3ff;
+            --bg-color: #e8dffc;
+            --text-color: #3f008f;
+            --hint-color: #8c6fe5;
+
+            --heart-opacity: 0.2;
+            --heart-scale: 3.0;
+
+            --cubic-bezier: cubic-bezier(0.645, 0.045, 0.355, 1);
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            overflow-x: hidden;
+            overflow-y: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        /* Herz-Ebene */
+        .heart-background-layer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-image: url('Herz.png');
+            background-position: center center;
+            background-repeat: no-repeat;
+            background-size: contain;
+            z-index: 1;
+            pointer-events: none;
+            opacity: var(--heart-opacity);
+            transform: scale(var(--heart-scale));
+            transition: opacity 1s ease, transform 1.5s var(--cubic-bezier);
+        }
+
+        body.open .heart-background-layer {
+            opacity: 0.1;
+        }
+
+        /* ============ Allgemeine Screens ============ */
+        .screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 50;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.6s ease;
+        }
+
+        .screen.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* Zurück-Pfeil (wiederverwendbar) */
+        .back-arrow {
+            position: fixed;
+            top: 30px;
+            left: 30px;
+            width: 45px;
+            height: 45px;
+            cursor: pointer;
+            z-index: 200;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: var(--paper-color);
+            border-radius: 50%;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            color: var(--env-color-dark);
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.5s ease;
+            border: 2px solid var(--env-color);
+        }
+
+        .back-arrow:hover {
+            transform: scale(1.1);
+            background-color: var(--env-color);
+            color: white;
+        }
+
+        body.open .back-arrow {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* Zurück-Pfeil (immer sichtbar, unabhängig von body.open) */
+        .back-arrow-static {
+            position: fixed;
+            top: 30px;
+            left: 30px;
+            width: 45px;
+            height: 45px;
+            cursor: pointer;
+            z-index: 220;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: var(--paper-color);
+            border-radius: 50%;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            color: var(--env-color-dark);
+            border: 2px solid var(--env-color);
+            transition: transform 0.3s ease, background-color 0.3s ease;
+        }
+
+        .back-arrow-static:hover {
+            transform: scale(1.1);
+            background-color: var(--env-color);
+            color: white;
+        }
+
+        /* ============ Intro-Screen ============ */
+        #intro-screen {
+            z-index: 60;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        .proceed-btn {
+            padding: 18px 45px;
+            font-size: 1.1rem;
+            letter-spacing: 1px;
+            font-weight: 500;
+            color: white;
+            background-color: var(--env-color-dark);
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 10px 30px rgba(124, 58, 237, 0.35);
+            transition: transform 0.3s var(--cubic-bezier), box-shadow 0.3s ease, background-color 0.3s ease;
+        }
+
+        .proceed-btn:hover {
+            transform: translateY(-3px) scale(1.03);
+            background-color: var(--env-color);
+            box-shadow: 0 14px 34px rgba(124, 58, 237, 0.45);
+        }
+
+        .proceed-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .password-form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 18px;
+        }
+
+        .password-label {
+            color: var(--text-color);
+            font-size: 1rem;
+            letter-spacing: 0.5px;
+            text-align: center;
+        }
+
+        .password-input {
+            width: 220px;
+            padding: 14px 20px;
+            font-size: 1.2rem;
+            letter-spacing: 4px;
+            text-align: center;
+            color: var(--text-color);
+            background-color: var(--paper-color);
+            border: 2px solid var(--env-color);
+            border-radius: 50px;
+            outline: none;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .password-input:focus {
+            border-color: var(--env-color-dark);
+            box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.15);
+        }
+
+        .password-form.shake .password-input {
+            border-color: #e05260;
+        }
+
+        .password-error {
+            color: #e05260;
+            font-size: 0.9rem;
+            height: 1.2em;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .password-error.visible {
+            opacity: 1;
+        }
+
+        @keyframes shake {
+            10%, 90% { transform: translateX(-2px); }
+            20%, 80% { transform: translateX(4px); }
+            30%, 50%, 70% { transform: translateX(-8px); }
+            40%, 60% { transform: translateX(8px); }
+        }
+
+        .password-form.shake .password-input {
+            animation: shake 0.5s ease;
+        }
+
+        #intro-screen.fading-out {
+            opacity: 0;
+            transition: opacity 0.6s ease;
+            pointer-events: none;
+        }
+
+        /* ============ Karussell ============ */
+        #carousel-screen {
+            flex-direction: row;
+            justify-content: space-between;
+            padding: 0 30px;
+        }
+
+        .carousel-arrow {
+            width: 60px;
+            height: 60px;
+            min-width: 60px;
+            border-radius: 50%;
+            background-color: var(--paper-color);
+            border: 2px solid var(--env-color);
+            color: var(--env-color-dark);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: transform 0.25s ease, background-color 0.25s ease;
+            z-index: 55;
+        }
+
+        .carousel-arrow:hover {
+            transform: scale(1.12);
+            background-color: var(--env-color);
+            color: white;
+        }
+
+        .carousel-stage {
+            position: relative;
+            flex: 1;
+            height: 60vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .carousel-card {
+            position: absolute;
+            width: 260px;
+            height: 320px;
+            background-color: var(--paper-color);
+            border-radius: 24px;
+            box-shadow: 0 20px 50px rgba(124, 58, 237, 0.25);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 18px;
+            cursor: pointer;
+            padding: 20px;
+            text-align: center;
+            transition: transform 0.5s var(--cubic-bezier), opacity 0.5s var(--cubic-bezier);
+        }
+
+        .carousel-card:hover {
+            transform: translateY(-6px) scale(1.03) !important;
+        }
+
+        .carousel-card.slide-out-left {
+            transform: translateX(-140%) scale(0.85);
+            opacity: 0;
+        }
+
+        .carousel-card.slide-out-right {
+            transform: translateX(140%) scale(0.85);
+            opacity: 0;
+        }
+
+        .carousel-card.slide-in-from-left {
+            transform: translateX(-140%) scale(0.85);
+            opacity: 0;
+            transition: none;
+        }
+
+        .carousel-card.slide-in-from-right {
+            transform: translateX(140%) scale(0.85);
+            opacity: 0;
+            transition: none;
+        }
+
+        .card-icon {
+            font-size: 4rem;
+            line-height: 1;
+        }
+
+        .card-title {
+            font-size: 1.3rem;
+            color: var(--text-color);
+            font-weight: 600;
+        }
+
+        .card-hint {
+            font-size: 0.85rem;
+            color: var(--hint-color);
+            font-weight: 300;
+            letter-spacing: 1px;
+            animation: breathe 2s infinite ease-in-out;
+        }
+
+        /* ============ Galerie ============ */
+        #gallery-screen {
+            align-items: stretch;
+        }
+
+        .gallery-container {
+            width: 100%;
+            height: 100vh;
+            overflow-y: auto;
+            box-sizing: border-box;
+            padding: 110px 40px 60px 40px;
+        }
+
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 24px;
+            max-width: 1300px;
+            margin: 0 auto;
+        }
+
+        .gallery-item {
+            position: relative;
+            aspect-ratio: 1 / 1;
+            border-radius: 18px;
+            overflow: hidden;
+            cursor: pointer;
+            background-color: var(--paper-color);
+            box-shadow: 0 10px 25px rgba(124, 58, 237, 0.18);
+            transition: transform 0.3s var(--cubic-bezier), box-shadow 0.3s ease;
+        }
+
+        .gallery-item:hover {
+            transform: translateY(-6px) scale(1.02);
+            box-shadow: 0 16px 34px rgba(124, 58, 237, 0.28);
+        }
+
+        .gallery-item img,
+        .gallery-item video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            pointer-events: none;
+        }
+
+        .gallery-item .play-icon {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background-color: rgba(255, 255, 255, 0.85);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: var(--env-color-dark);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            pointer-events: none;
+        }
+
+        /* Lightbox */
+        .lightbox {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: rgba(30, 10, 60, 0.85);
+            z-index: 300;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s ease;
+        }
+
+        .lightbox.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .lightbox-content {
+            max-width: 90vw;
+            max-height: 85vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transform: scale(0.9);
+            transition: transform 0.4s var(--cubic-bezier);
+        }
+
+        .lightbox.active .lightbox-content {
+            transform: scale(1);
+        }
+
+        .lightbox-content img,
+        .lightbox-content video {
+            max-width: 90vw;
+            max-height: 85vh;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+        }
+
+        /* ============ Umschlag ============ */
+        .envelope-wrapper {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            cursor: pointer;
+            width: 300px;
+            height: 200px;
+            z-index: 100;
+            transition: transform 1.5s var(--cubic-bezier), opacity 1.2s var(--cubic-bezier);
+        }
+
+        .envelope-body {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            background-color: var(--env-color-dark);
+            box-shadow: 0 20px 50px rgba(124, 58, 237, 0.3);
+        }
+
+        .flap {
+            position: absolute;
+            top: 0;
+            left: 0;
+            border-left: 150px solid transparent;
+            border-right: 150px solid transparent;
+            border-top: 100px solid var(--env-color);
+            transform-origin: top;
+            transition: transform 0.6s var(--cubic-bezier);
+            z-index: 101;
+        }
+
+        .envelope-body::before {
+            content: "";
+            position: absolute;
+            z-index: 5;
+            border-left: 150px solid transparent;
+            border-right: 150px solid transparent;
+            border-bottom: 100px solid var(--env-color);
+            bottom: 0;
+        }
+
+        .envelope-body::after {
+            content: "";
+            position: absolute;
+            z-index: 4;
+            border-left: 150px solid var(--env-color-dark);
+            border-right: 150px solid var(--env-color-dark);
+            border-top: 100px solid transparent;
+            border-bottom: 100px solid transparent;
+            top: 0;
+        }
+
+        /* Brief */
+        .letter {
+            width: 50%;
+            min-width: 320px;
+            background-color: var(--paper-color);
+            margin: 5vh auto 10vh auto;
+            padding: 60px;
+            box-sizing: border-box;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.05);
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(120vh);
+            z-index: 150;
+            transition: transform 1.8s var(--cubic-bezier) 0.3s, opacity 1s ease 0.5s;
+            min-height: 85vh;
+        }
+
+        body.open .letter {
+            pointer-events: auto;
+        }
+
+        .letter-content {
+            font-size: 1.2rem;
+            color: var(--text-color);
+            line-height: 1.8;
+            white-space: pre-wrap;
+        }
+
+        /* Animationen */
+        body.open .flap { transform: rotateX(180deg); z-index: 0; }
+        body.open .envelope-wrapper { transform: translate(-50%, 100vh); opacity: 0; pointer-events: none; }
+        body.open .letter { opacity: 1; transform: translateY(0); }
+        body.open #letter-screen { overflow-y: auto; align-items: flex-start; }
+
+        .hint {
+            position: absolute;
+            bottom: -60px;
+            width: 100%;
+            text-align: center;
+            color: var(--hint-color);
+            font-weight: 300;
+            letter-spacing: 1px;
+            animation: breathe 2s infinite ease-in-out;
+        }
+
+        @keyframes breathe {
+            0%, 100% { opacity: 0.6; transform: translateY(0); }
+            50% { opacity: 1; transform: translateY(-5px); }
+        }
+
+        @media (max-width: 768px) {
+            .letter { width: 90%; padding: 30px; }
+            .heart-background-layer { transform: scale(1.8); }
+            .carousel-card { width: 200px; height: 260px; }
+            .carousel-arrow { width: 48px; height: 48px; min-width: 48px; }
+            .gallery-container { padding: 90px 16px 40px 16px; }
+            .gallery-grid { grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 14px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="heart-background-layer"></div>
+
+    <!-- ============ Intro-Screen ============ -->
+    <div class="screen active" id="intro-screen">
+        <form class="password-form" id="passwordForm">
+            <div class="password-label">Gib das Passwort ein</div>
+            <input type="password" class="password-input" id="passwordInput" inputmode="numeric" autocomplete="off" maxlength="20">
+            <div class="password-error" id="passwordError">Falsches Passwort</div>
+            <button type="submit" class="proceed-btn" id="proceedBtn">WEITER</button>
+        </form>
+    </div>
+
+    <!-- ============ Karussell-Screen ============ -->
+    <div class="screen" id="carousel-screen">
+        <div class="carousel-arrow" id="arrowLeft">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="19" y1="12" x2="5" y2="12"></line>
+                <polyline points="12 19 5 12 12 5"></polyline>
+            </svg>
+        </div>
+
+        <div class="carousel-stage" id="carouselStage"></div>
+
+        <div class="carousel-arrow" id="arrowRight">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+                <polyline points="12 5 19 12 12 19"></polyline>
+            </svg>
+        </div>
+    </div>
+
+    <!-- ============ Element-Screen: Brief ============ -->
+    <div class="screen" id="letter-screen">
+
+        <div class="back-arrow" id="backBtn">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="19" y1="12" x2="5" y2="12"></line>
+                <polyline points="12 19 5 12 12 5"></polyline>
+            </svg>
+        </div>
+
+        <div class="envelope-wrapper" id="envelope">
+            <div class="flap"></div>
+            <div class="envelope-body"></div>
+            <div class="hint">KLICKEN ZUM ÖFFNEN</div>
+        </div>
+
+        <article class="letter">
+            <div class="letter-content">
+Liebe Eda,
+
+heute, der 06.03.2026, ist der Tag, an dem wir 3 Monate zusammen sind. YIPPIE >.<.
+Da ich leider jetzt in Bosnien bin und dir nichts in echt schenken kann, habe ich mir gedacht,
+dass ich dir einen Brief schreibe und ihn dir so online schicke hihi.
+
+Ich hoffe du kannst das design der Website ertragen... ich habe mir mühe gegeben.
+Im vergleich zu meinem ersten Liebesbrief, ist dieser lesbar(er). Ich habe noch in Erinnerung,
+dass ich den ersten ein bisschen unübersichtlich geschrieben habe.
+
+Ich wünsche mir, ich könnte diesen brief mit parfüm besprühen, wie du es mit deinem an
+Valentienstag gemacht hattest. Ich rieche wirklich ab und zu an dem Brief. Jedoch besteht
+immer die Möglichkeit, dass ich dabei anfange zu weinen, falls ich ihn ausversehen öffne...
+
+Ich hätte wirklich nie im Leben gedacht, dass ich so eine emotive Person sein kann, weißt du..
+Die ganze zeit dachte ich, mit mir sei was falsch oder das ich zu anders bin als die anderen. Ich habe
+immer gesehen, wie meine Freunde davon schwärmten, wie schön es sei, mit jemanden zusammen zu sein.
+Ich habe es Ihnen nicht abgekauft.
+Ich dachte wirklich, dass es nicht so schön sein kann, wie sie es beschrieben haben. Und das dachte ich,
+weil ich nie jemanden so interessant und so schön fande wie dich.
+Das erste mal als mit dir richtig reden konnte auf dem Weg zum Freiheitsplatz dachte ich mir, dass du sehr
+süß seist.
+Als ich dann mit dir auf der Halloween feier reden konnte, wusste ich, dass ich dich nicht einfach so
+gehen lassen kann. Du bist die erste Person in die ich mich wirklich verliebt habe.
+Und das könnte mich nicht glücklicher machen.
+
+Ich habe mit dir schonmal darüber gesprochen aber ich glaube so ein bisschen an das Schicksal.
+Daher denke ich, dass es wirklich Schicksal gewesen sein muss, dass wir uns zu dem Zeitpunkt und
+an dem Ort treffen, wo wir uns trafen.
+Wir beide kämen fast auf diese Feier nicht und trotzdem waren wir da.
+
+Ich denke sehr sehr sehr sehr oft über dich nach. Also wirklich du verlässt meinen Kopf nicht.
+Immer wenn ich etwas mache, denke ich mir, wie schön es wäre, wenn du bei mir wärst.
+Weil ich so oft an dich denke, denke ich oft darüber nach, was ich mit dir alles machen möchte.
+Wo wir raus gehen, was wir uns anschauen, wie wir zusammen reden, was ich dir schenke und so weiter...
+Dieses ganze denken lässt mich nicht in Ruhe,
+Ich vermisse dich sehr.
+Ich vermisse dich so viel, dass ich deswegen manchmal weine, so dumm und baby-haft es sich anhört
+-_-
+
+Eda du bist für mich etwas ganz ganz besonderes. Ich kann es kaum erwarten, bis ich enger mit deiner
+Familie bin und sie mich aufnehmen, weil ich wirklich teil deines Lebens werden will.
+Du hast dir so viel verdient weil du wirklich so ein guter Mensch bist. Ich sehe, wie viel Mühe du dir
+bei Allem gibt sei es das Erziehen deiner Schwester, Schule oder einfach nur deine Aufmerksamkeit mir
+gegenüber. Ich finde alles was du machst sehr schön.
+
+hmpf ich bin ja auch irgendwo in dich verliebt vielleicht ist es das hihi...
+
+Ich will dich richtig glücklich machen mein bebi.
+Mit dir überall hingehen und so viel machen.
+Ich will dich lieben egal was kommen sollte.
+Hauptsache, du bist bei mir.
+
+Ich hoffe wirklich, dass du meinen Brief an dich genossen hast...
+es hat ein bisschen gedauert das alles vorzubereiten aber das war es jede Sekunde wert.
+
+Ich liebe dich sehr meine Eda
+Vergesse das nicht.
+Ɛ>
+Dein Ritter,
+Faris
+            </div>
+        </article>
+    </div>
+
+    <!-- ============ Element-Screen: Galerie ============ -->
+    <div class="screen" id="gallery-screen">
+
+        <div class="back-arrow-static" id="galleryBackBtn">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="19" y1="12" x2="5" y2="12"></line>
+                <polyline points="12 19 5 12 12 5"></polyline>
+            </svg>
+        </div>
+
+        <div class="gallery-container">
+            <div class="gallery-grid" id="galleryGrid"></div>
+        </div>
+
+        <div class="lightbox" id="lightbox">
+            <div class="back-arrow-static" id="lightboxBackBtn">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="19" y1="12" x2="5" y2="12"></line>
+                    <polyline points="12 19 5 12 12 5"></polyline>
+                </svg>
+            </div>
+            <div class="lightbox-content" id="lightboxContent"></div>
+        </div>
+    </div>
+
+    <script>
+        /* =====================================================================
+           ELEMENT-SYSTEM
+           Um ein neues Element zum Karussell hinzuzufügen, einfach ein neues
+           Objekt in das "elements"-Array einfügen:
+
+           {
+               id:    'eindeutige-id',
+               title: 'Titel im Karussell',
+               icon:  '✉️',              // Emoji oder kurzes Symbol
+               onActivate: () => { ... }  // wird beim Anklicken der Karte ausgeführt
+           }
+
+           onActivate übernimmt die volle Kontrolle über den Bildschirm
+           (z.B. showScreen('mein-screen-id') für ein eigenes <div class="screen">).
+           Ruft man returnToCarousel() auf, kommt man zurück zum Menü.
+           ===================================================================== */
+
+        const elements = [
+            {
+                id: 'letter',
+                title: 'Der Brief',
+                icon: '💌',
+                onActivate: () => {
+                    showScreen('letter-screen');
+                }
+            },
+            {
+                id: 'gallery',
+                title: 'Galerie',
+                icon: '🖼️',
+                onActivate: () => {
+                    showScreen('gallery-screen');
+                    renderGallery();
+                }
+            }
+            // Weitere Elemente hier einfügen...
+        ];
+
+        /* =====================================================================
+           GALERIE
+           Um ein neues Bild oder Video hinzuzufügen, einfach ein neues Objekt
+           ans Ende des "galleryItems"-Arrays anhängen. Dateien gehören in den
+           Ordner "Galerie/". Neue Einträge erscheinen automatisch unten in
+           der Galerie.
+
+           Bild:  { type: 'image', src: 'Galerie/dateiname.jpg', alt: 'Beschreibung' }
+           Video: { type: 'video', src: 'Galerie/dateiname.mp4', poster: 'Galerie/vorschau.jpg' }
+                  (poster ist optional)
+           ===================================================================== */
+
+        const galleryItems = [
+            { type: 'video', src: 'Galerie/20260807_234401.mp4' },
+            { type: 'image', src: 'Galerie/20260713_102907.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260708_193914.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260708_193910.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260704_193740.jpg', alt: '' },
+            { type: 'video', src: 'Galerie/20260704_193614.mp4' },
+            { type: 'image', src: 'Galerie/20260704_152134.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260704_082718.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260704_013336.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260704_013331.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260703_193310.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/d645fc0e-2472-430a-a786-b4ac7712aab7.png', alt: '' },
+            { type: 'image', src: 'Galerie/20260628_200640.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260628_200631.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260628_192319.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260628_191734.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260628_191729.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260628_191722.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260628_184200.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260628_184159.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/IMG_20260626_221104_794.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260624_163043.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260624_163041.jpg', alt: '' },
+            { type: 'video', src: 'Galerie/20260624_163026.mp4' },
+            { type: 'image', src: 'Galerie/20260624_163016.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260624_163007.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260624_163004.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260624_163000.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260624_162954.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260624_162950.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260624_162947.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260624_162937.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260624_162928.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260624_162924.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260624_162919.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260624_162917.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260624_162912.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260624_162907.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260624_162900.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260618_131146.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/cb8299ad-5481-4e87-aa77-48364fba4fca.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/8d2f4dbd-8341-474e-baf4-d6bd64d24f42.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260616_160308.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260616_160302.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260616_160259.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260616_160247.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260616_151021.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260616_150835.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260615_191025.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260615_172213.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260615_172207.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260615_172202.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260614_202832.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260614_202827.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260614_202822.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260614_202811.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260614_202804.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260614_202754.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260607_150002.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260607_145958.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/IMG_20260605_222235_635.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260605_124222.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260605_124219.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260601_160152.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260531_161458.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/IMG_20260531_042250_742.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/IMG_20260528_213653_847.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/IMG_20260527_231826_009.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260524_192512.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260524_192510.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260524_192459.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260524_192452.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260524_192447.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260524_192441.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260524_192430.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260524_173937.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260524_173932.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260524_173928.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260524_173924.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260524_153220.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260524_153219.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260524_153217.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260524_153215.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260524_144407.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260524_144340.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260524_144332.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260524_121744.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260524_121706.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260524_121641.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260524_121639.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/IMG_20260523_135944_697.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260520_200821.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260516_150314.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260516_150239.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260516_150233.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260516_150225.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260516_150219.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/Snapchat-1825648546.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/Snapchat-1032475016.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/Snapchat-464408853.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/Snapchat-1959197710.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/Snapchat-1225989118.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/Snapchat-1727729680.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/Snapchat-91223179.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/Snapchat-1841545519.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/Snapchat-444598165.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/Snapchat-368688235.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/Snapchat-266356419.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/Snapchat-522905888.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260514_134525.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260514_133638.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/Snapchat-1146021638.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260510_203033.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/IMG_20260509_210559_988.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260504_161643.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260501_143916.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260501_135958.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260501_135939.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/IMG_20260430_174955_119.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/IMG-20260427-WA0001.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260426_154611.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260426_154608.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260426_154604.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260426_154556.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260426_154554.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260426_154547.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260426_154537.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260426_154532.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260425_185647.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260425_184110.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260425_184106.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260424_220422.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260421_163201.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260421_163158.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260418_203936.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260418_203912.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260418_203908.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260418_203852.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260418_183008.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260418_183006.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260418_182959.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260418_182953.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260418_182950.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/Snapchat-1892123318.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/Snapchat-131248450.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/Snapchat-1235543681.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/Snapchat-1711187504.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260406_180102.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260406_180038.jpg', alt: '' },
+            { type: 'video', src: 'Galerie/20260406_175902.mp4' },
+            { type: 'image', src: 'Galerie/20260406_175845.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260406_175840.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/IMG-20260329-WA0015.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260328_135545.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260328_135529.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260328_122126.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260327_135807.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260327_135805.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260327_135750.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/faris_und_adijan_sind_gestorben.PNG', alt: '' },
+            { type: 'video', src: 'Galerie/Snapchat-1533477663.mp4' },
+            { type: 'image', src: 'Galerie/20260307_230301.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260307_230259.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/Snapchat-1469829761.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260224_144203.jpg', alt: '' },
+            { type: 'video', src: 'Galerie/20260223_212645.mp4' },
+            { type: 'image', src: 'Galerie/20260217_163639.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260217_163624.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260214_235008.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260214_234956.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260214_124010.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260214_124009.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260214_123959.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260214_123956.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260214_123951.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260214_123947.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260214_123944.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260214_123943.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260214_123937.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260214_123851.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260214_123850.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260214_123849.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260214_123845.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260214_123829.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260214_123828.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260214_123820.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260214_123818.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260214_123705.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260213_155355.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260211_235220.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260211_234730.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260211_234715.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260211_191403.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260207_165048.jpg', alt: '' },
+            { type: 'video', src: 'Galerie/20260207_150350.mp4' },
+            { type: 'image', src: 'Galerie/Snapchat-179673670.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/IMG-20260126-WA0027.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/IMG-20260126-WA0026.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/IMG-20260124-WA0001.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260124_203707.jpg', alt: '' },
+            { type: 'video', src: 'Galerie/20260124_194219.mp4' },
+            { type: 'image', src: 'Galerie/IMG-20260123-WA0016.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/IMG-20260123-WA0015.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/IMG-20260123-WA0012.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/Snapchat-40425029.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/Snapchat-46451800.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/Snapchat-1086991590.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260117_005913.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260117_005840.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260117_005736.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260117_005712.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260117_005649.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260117_005646.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260117_005623.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260117_005607.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260117_005603.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260117_005545.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260117_005504.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260117_005420.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260117_005416.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260117_005404.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/IMG_20260117_004746_191.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/IMG_20260117_004743_507.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/Snapchat-1599771427.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260112_143421.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260112_075106.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260112_074823.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20260101_020855.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20251218_090733.jpg', alt: '' },
+            { type: 'video', src: 'Galerie/20251217_200705.mp4' },
+            { type: 'image', src: 'Galerie/Snapchat-1482097436.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/Snapchat-123179219.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/IMG-20251206-WA0006.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20251122_132027.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20251031_191028.jpg', alt: '' },
+            { type: 'video', src: 'Galerie/20251005_225448.mp4' },
+            { type: 'image', src: 'Galerie/20251005_224043.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20251005_224036.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/20251005_223848.jpg', alt: '' },
+            { type: 'image', src: 'Galerie/Snapchat-768942788.jpg', alt: '' },
+            { type: 'video', src: 'Galerie/Day 5.mp4' }
+            // Weitere Bilder/Videos hier einfügen...
+        ];
+
+        let currentIndex = 0;
+        let activeScreenId = null;
+
+        const introScreen = document.getElementById('intro-screen');
+        const carouselScreen = document.getElementById('carousel-screen');
+        const carouselStage = document.getElementById('carouselStage');
+        const arrowLeft = document.getElementById('arrowLeft');
+        const arrowRight = document.getElementById('arrowRight');
+        const proceedBtn = document.getElementById('proceedBtn');
+
+        function buildCard(el) {
+            const card = document.createElement('div');
+            card.className = 'carousel-card';
+            card.innerHTML = `
+                <div class="card-icon">${el.icon}</div>
+                <div class="card-title">${el.title}</div>
+                <div class="card-hint">KLICKEN ZUM ÖFFNEN</div>
+            `;
+            card.addEventListener('click', () => {
+                const target = elements[currentIndex];
+                target.onActivate();
+            });
+            return card;
+        }
+
+        function renderCurrentCard() {
+            carouselStage.innerHTML = '';
+            carouselStage.appendChild(buildCard(elements[currentIndex]));
+        }
+
+        function switchTo(newIndex, direction) {
+            const oldCard = carouselStage.querySelector('.carousel-card');
+            if (!oldCard) {
+                currentIndex = newIndex;
+                renderCurrentCard();
+                return;
+            }
+
+            oldCard.classList.add(direction === 'right' ? 'slide-out-left' : 'slide-out-right');
+
+            setTimeout(() => {
+                currentIndex = newIndex;
+                const newCard = buildCard(elements[currentIndex]);
+                newCard.classList.add(direction === 'right' ? 'slide-in-from-right' : 'slide-in-from-left');
+                carouselStage.innerHTML = '';
+                carouselStage.appendChild(newCard);
+
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(() => {
+                        newCard.classList.remove('slide-in-from-right', 'slide-in-from-left');
+                    });
+                });
+            }, 500);
+        }
+
+        function nextElement() {
+            const newIndex = (currentIndex + 1) % elements.length;
+            switchTo(newIndex, 'right');
+        }
+
+        function prevElement() {
+            const newIndex = (currentIndex - 1 + elements.length) % elements.length;
+            switchTo(newIndex, 'left');
+        }
+
+        function showScreen(screenId) {
+            carouselScreen.classList.remove('active');
+            document.getElementById(screenId).classList.add('active');
+            activeScreenId = screenId;
+        }
+
+        function returnToCarousel() {
+            document.body.classList.remove('open');
+            if (activeScreenId) {
+                document.getElementById(activeScreenId).classList.remove('active');
+            }
+            activeScreenId = null;
+            carouselScreen.classList.add('active');
+        }
+
+        const SITE_PASSWORD = '061225';
+        const passwordForm = document.getElementById('passwordForm');
+        const passwordInput = document.getElementById('passwordInput');
+        const passwordError = document.getElementById('passwordError');
+
+        passwordForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            if (passwordInput.value !== SITE_PASSWORD) {
+                passwordError.classList.add('visible');
+                passwordForm.classList.remove('shake');
+                void passwordForm.offsetWidth;
+                passwordForm.classList.add('shake');
+                passwordInput.value = '';
+                passwordInput.focus();
+                return;
+            }
+
+            passwordError.classList.remove('visible');
+            introScreen.classList.add('fading-out');
+            setTimeout(() => {
+                introScreen.classList.remove('active');
+                carouselScreen.classList.add('active');
+                renderCurrentCard();
+            }, 600);
+        });
+
+        arrowRight.addEventListener('click', nextElement);
+        arrowLeft.addEventListener('click', prevElement);
+
+        /* ---- Brief-Element: bestehende Umschlag/Brief-Logik ---- */
+        const envelope = document.getElementById('envelope');
+        const backBtn = document.getElementById('backBtn');
+
+        envelope.addEventListener('click', () => { document.body.classList.add('open'); });
+
+        backBtn.addEventListener('click', () => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            setTimeout(() => { returnToCarousel(); }, 100);
+        });
+
+        /* ---- Galerie-Element ---- */
+        const galleryGrid = document.getElementById('galleryGrid');
+        const galleryBackBtn = document.getElementById('galleryBackBtn');
+        const lightbox = document.getElementById('lightbox');
+        const lightboxBackBtn = document.getElementById('lightboxBackBtn');
+        const lightboxContent = document.getElementById('lightboxContent');
+
+        let galleryRendered = false;
+
+        const lazyVideoObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const video = entry.target;
+                    if (video.dataset.src && !video.src) {
+                        video.src = video.dataset.src;
+                        video.preload = 'metadata';
+                    }
+                }
+            });
+        }, { root: null, rootMargin: '200px' });
+
+        function buildGalleryItem(item) {
+            const el = document.createElement('div');
+            el.className = 'gallery-item';
+
+            if (item.type === 'video') {
+                const video = document.createElement('video');
+                video.dataset.src = item.src;
+                if (item.poster) video.poster = item.poster;
+                video.muted = true;
+                video.preload = 'none';
+                video.playsInline = true;
+                el.appendChild(video);
+                lazyVideoObserver.observe(video);
+
+                const playIcon = document.createElement('div');
+                playIcon.className = 'play-icon';
+                playIcon.innerHTML = `
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M8 5v14l11-7z"></path>
+                    </svg>
+                `;
+                el.appendChild(playIcon);
+            } else {
+                const img = document.createElement('img');
+                img.src = item.src;
+                img.alt = item.alt || '';
+                img.loading = 'lazy';
+                img.decoding = 'async';
+                el.appendChild(img);
+            }
+
+            el.addEventListener('click', () => openLightbox(item));
+            return el;
+        }
+
+        function renderGallery() {
+            if (galleryRendered) return;
+            galleryGrid.innerHTML = '';
+            galleryItems.forEach(item => {
+                galleryGrid.appendChild(buildGalleryItem(item));
+            });
+            galleryRendered = true;
+        }
+
+        function openLightbox(item) {
+            lightboxContent.innerHTML = '';
+
+            if (item.type === 'video') {
+                const video = document.createElement('video');
+                video.src = item.src;
+                video.controls = true;
+                video.autoplay = true;
+                video.playsInline = true;
+                lightboxContent.appendChild(video);
+            } else {
+                const img = document.createElement('img');
+                img.src = item.src;
+                img.alt = item.alt || '';
+                lightboxContent.appendChild(img);
+            }
+
+            lightbox.classList.add('active');
+        }
+
+        function closeLightbox() {
+            lightbox.classList.remove('active');
+            const video = lightboxContent.querySelector('video');
+            if (video) {
+                video.pause();
+            }
+            setTimeout(() => { lightboxContent.innerHTML = ''; }, 400);
+        }
+
+        galleryBackBtn.addEventListener('click', () => { returnToCarousel(); });
+        lightboxBackBtn.addEventListener('click', () => { closeLightbox(); });
+    </script>
+</body>
+</html>
